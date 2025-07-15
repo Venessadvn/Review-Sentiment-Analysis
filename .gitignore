@@ -1,6 +1,9 @@
 venv/
 __pycache__/
 *.pyc
-*.pyo
-*.log
+*.pkl
+*.pt
+*.safetensors
+.DS_Store
 .env
+saved_model/
