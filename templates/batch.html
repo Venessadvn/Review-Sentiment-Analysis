@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Batch Prediction - Amazon Review Sentiment Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Color palette from the image */
+            --color-teal: #5BA082;
+            --color-lime: #9DC25C;
+            --color-orange: #D18B5C;
+            --color-pink: #D29BB5;
+            --color-beige: #BFB5A0;
+            --color-yellow: #F7DC5C;
+            --color-rose: #D5658D;
+            --color-sage: #A3A899;
+            --color-peach: #F3D0B6;
+            --color-navy: #2E4057;
+            --color-olive: #7A8471;
+            --color-coral: #F0A07F;
+            --color-terra: #DF7C52;
+            --color-sand: #DFD5A5;
+            --color-charcoal: #5B5958;
+            --color-tan: #C0A570;
+            --color-mint: #A8DCC1;
+            --color-gray: #A8A8A8;
+            --color-mauve: #C48BA6;
+            --color-purple: #6B5B95;
+            --color-seafoam: #8EC4B3;
+            --color-dark-gray: #5C5C5C;
+            --color-light-gray: #C8C8C8;
+            --color-flesh: #E8B4A6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--color-teal) 0%, var(--color-sage) 30%, var(--color-beige) 70%, var(--color-peach) 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Decorative background elements */
+        .bg-decoration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .prediction-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .prediction-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, 
+                var(--color-teal) 0%, 
+                var(--color-lime) 25%, 
+                var(--color-orange) 50%, 
+                var(--color-pink) 75%, 
+                var(--color-sage) 100%);
+            background-size: 200% 100%;
+            animation: colorShift 3s ease-in-out infinite;
+        }
+
+        @keyframes colorShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .title-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .feature-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--color-sage);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .main-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--color-teal);
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .subtitle {
+            color: var(--color-charcoal);
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .format-info {
+            background: linear-gradient(135deg, rgba(168, 220, 193, 0.3), rgba(142, 196, 179, 0.3));
+            border: 1px solid rgba(168, 220, 193, 0.5);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .format-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-mint), var(--color-seafoam));
+        }
+
+        .format-info-title {
+            font-weight: 700;
+            color: var(--color-teal);
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .format-requirement {
+            color: var(--color-navy);
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .format-requirement i {
+            color: var(--color-teal);
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--color-sage);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(163, 168, 153, 0.1), rgba(191, 181, 160, 0.1));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--color-teal);
+            background: linear-gradient(135, rgba(91, 160, 130, 0.1), rgba(168, 220, 193, 0.1));
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(91, 160, 130, 0.15);
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--color-lime);
+            background: linear-gradient(135deg, rgba(157, 194, 92, 0.15), rgba(168, 220, 193, 0.15));
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3.5rem;
+            color: var(--color-teal);
+            margin-bottom: 20px;
+            transition: color 0.3s ease;
+        }
+
+        .upload-zone:hover .upload-icon {
+            color: var(--color-lime);
+        }
+
+        .upload-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--color-navy);
+            margin-bottom: 8px;
+        }
+
+        .upload-subtext {
+            color: var(--color-charcoal);
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            background: var(--color-teal);
+            border: none;
+            color: white;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(91, 160, 130, 0.3);
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:hover {
+            background: var(--color-lime);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(157, 194, 92, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-teal);
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .back-link:hover {
+            background: rgba(91, 160, 130, 0.1);
+            color: var(--color-orange);
+            transform: translateX(-5px);
+        }
+
+        .loading-state {
+            display: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, rgba(168, 220, 193, 0.3), rgba(142, 196, 179, 0.3));
+            color: var(--color-teal);
+            border: 1px solid rgba(168, 220, 193, 0.5);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: 600;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, rgba(213, 101, 141, 0.3), rgba(196, 139, 166, 0.3));
+            color: var(--color-rose);
+            border: 1px solid rgba(213, 101, 141, 0.5);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: 600;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.2rem;
+            }
+            
+            .prediction-card {
+                padding: 40px 30px;
+            }
+            
+            .upload-zone {
+                padding: 30px 20px;
+            }
+        }
+
+        /* File selected state */
+        .file-selected .upload-zone {
+            border-color: var(--color-lime);
+            background: linear-gradient(135deg, rgba(157, 194, 92, 0.15), rgba(168, 220, 193, 0.15));
+        }
+
+        .file-selected .upload-icon {
+            color: var(--color-lime);
+        }
+
+        .file-name {
+            font-weight: 700;
+            color: var(--color-teal);
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: rgba(91, 160, 130, 0.1);
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* Color accents for different elements */
+        .format-requirement:nth-child(2) i { color: var(--color-orange); }
+        .format-requirement:nth-child(3) i { color: var(--color-pink); }
+        .format-requirement:nth-child(4) i { color: var(--color-lime); }
+    </style>
+</head>
+<body>
+    <div class="bg-decoration"></div>
+
+    <div class="main-container">
+        <div class="prediction-card">
+            <div class="title-section">
+                <div class="feature-badge">
+                    <i class="fas fa-upload"></i>
+                    Batch Processing
+                </div>
+                <h1 class="main-title">Batch Prediction</h1>
+                <p class="subtitle">Upload multiple reviews for sentiment analysis</p>
+            </div>
+
+            <!-- 🔹 Format Info -->
+            <div class="format-info">
+                <div class="format-info-title">
+                    <i class="fas fa-info-circle"></i> Format Requirements
+                </div>
+                <div class="format-requirement">
+                    <i class="fas fa-check-circle"></i> CSV file with a column named <code>review</code>
+                </div>
+                <div class="format-requirement">
+                    <i class="fas fa-check-circle"></i> Maximum file size: 10MB
+                </div>
+                <div class="format-requirement">
+                    <i class="fas fa-check-circle"></i> Supported formats: .csv only
+                </div>
+            </div>
+
+            <!-- 🔹 Success/Error Messages -->
+            {% if error %}
+            <div class="alert alert-danger mt-3">
+                <i class="fas fa-exclamation-circle"></i> {{ error }}
+            </div>
+            {% endif %}
+
+            {% if results %}
+            <div class="alert alert-success mt-3" id="successMessage">
+                <i class="fas fa-check-circle"></i> File processed successfully!
+            </div>
+            {% else %}
+            <div class="alert alert-info mt-3" id="successMessage" style="display: none;">
+                <i class="fas fa-check-circle"></i> File uploaded successfully!
+            </div>
+            {% endif %}
+
+            <!-- 🔹 Upload Form -->
+            <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                <div class="upload-section">
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">Drop your CSV file here</div>
+                        <div class="upload-subtext">or click to browse</div>
+                        <input type="file" name="csvfile" class="file-input" accept=".csv" required id="fileInput">
+                        <div class="file-name" id="fileName" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span class="normal-state">
+                        <i class="fas fa-brain"></i> Analyze Sentiment
+                    </span>
+                    <span class="loading-state">
+                        <span class="loading-spinner"></span>
+                        Processing...
+                    </span>
+                </button>
+            </form>
+
+            <!-- 🔹 Results Table -->
+            {% if results %}
+            <div class="mt-5">
+                <h4 class="text-center mb-4" style="color: var(--color-teal); font-weight: 700;">Prediction Results</h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-success">
+                            <tr>
+                                <th>Review</th>
+                                <th>Sentiment</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in results %}
+                            <tr>
+                                <td>{{ r.text }}</td>
+                                <td>
+                                    {% if r.sentiment.lower().startswith("positive") %}
+                                        <span class="badge bg-success">{{ r.sentiment }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ r.sentiment }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><code>{{ r.confidence }}</code></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+            {% if download_link %}
+    <div class="text-center mt-4">
+        <a href="{{ url_for('static', filename='batch_predictions.csv') }}" 
+           class="btn btn-success" download>
+            <i class="fas fa-download"></i> Download CSV
+        </a>
+    </div>
+{% endif %}
+
+
+            <!-- 🔹 Back Button -->
+            <div class="text-center">
+                <a href="{{ url_for('home') }}" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Single Prediction
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔹 JavaScript -->
+    <script>
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const submitBtn = document.getElementById('submitBtn');
+        const form = document.getElementById('uploadForm');
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        });
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
+                fileName.textContent = file.name;
+                fileName.style.display = 'inline-block';
+                document.body.classList.add('file-selected');
+                document.getElementById("successMessage").style.display = 'block';
+            } else {
+                document.getElementById("errorMessage").style.display = 'block';
+                fileInput.value = '';
+            }
+        }
+
+        form.addEventListener('submit', (e) => {
+            if (!fileInput.files[0]) {
+                e.preventDefault();
+                document.getElementById("errorMessage").style.display = 'block';
+                return;
+            }
+
+            submitBtn.querySelector('.normal-state').style.display = 'none';
+            submitBtn.querySelector('.loading-state').style.display = 'inline-block';
+            submitBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>

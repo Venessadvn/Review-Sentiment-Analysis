@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Amazon Review Sentiment Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Color palette from the image */
+            --color-teal: #5BA082;
+            --color-lime: #9DC25C;
+            --color-orange: #D18B5C;
+            --color-pink: #D29BB5;
+            --color-beige: #BFB5A0;
+            --color-yellow: #F7DC5C;
+            --color-rose: #D5658D;
+            --color-sage: #A3A899;
+            --color-peach: #F3D0B6;
+            --color-navy: #2E4057;
+            --color-olive: #7A8471;
+            --color-coral: #F0A07F;
+            --color-terra: #DF7C52;
+            --color-sand: #DFD5A5;
+            --color-charcoal: #5B5958;
+            --color-tan: #C0A570;
+            --color-mint: #A8DCC1;
+            --color-gray: #A8A8A8;
+            --color-mauve: #C48BA6;
+            --color-purple: #6B5B95;
+            --color-seafoam: #8EC4B3;
+            --color-dark-gray: #5C5C5C;
+            --color-light-gray: #C8C8C8;
+            --color-flesh: #E8B4A6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--color-teal) 0%, var(--color-sage) 30%, var(--color-beige) 70%, var(--color-peach) 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Decorative background elements */
+        .bg-decoration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .prediction-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .prediction-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, 
+                var(--color-teal) 0%, 
+                var(--color-lime) 25%, 
+                var(--color-orange) 50%, 
+                var(--color-pink) 75%, 
+                var(--color-sage) 100%);
+            background-size: 200% 100%;
+            animation: colorShift 3s ease-in-out infinite;
+        }
+
+        @keyframes colorShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .title-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .feature-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--color-sage);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .main-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--color-teal);
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .subtitle {
+            color: var(--color-charcoal);
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--color-navy);
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .form-control {
+            border: 2px solid var(--color-sage);
+            border-radius: 16px;
+            padding: 16px 20px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+            resize: vertical;
+        }
+
+        .form-control:focus {
+            border-color: var(--color-teal);
+            box-shadow: 0 0 0 4px rgba(91, 160, 130, 0.15);
+            outline: none;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .form-control::placeholder {
+            color: var(--color-gray);
+            font-style: italic;
+        }
+
+        .submit-btn {
+            background: var(--color-teal);
+            border: none;
+            color: white;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(91, 160, 130, 0.3);
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:hover {
+            background: var(--color-lime);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(157, 194, 92, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .prediction-result {
+            margin-top: 30px;
+            padding: 24px;
+            border-radius: 16px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prediction-result.positive {
+            background: linear-gradient(135deg, rgba(168, 220, 193, 0.3), rgba(142, 196, 179, 0.3));
+            border: 1px solid rgba(168, 220, 193, 0.5);
+            color: var(--color-teal);
+        }
+
+        .prediction-result.negative {
+            background: linear-gradient(135deg, rgba(213, 101, 141, 0.3), rgba(196, 139, 166, 0.3));
+            border: 1px solid rgba(213, 101, 141, 0.5);
+            color: var(--color-rose);
+        }
+
+        .prediction-result.neutral {
+            background: linear-gradient(135deg, rgba(163, 168, 153, 0.3), rgba(191, 181, 160, 0.3));
+            border: 1px solid rgba(163, 168, 153, 0.5);
+            color: var(--color-charcoal);
+        }
+
+        .prediction-result::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+        }
+
+        .prediction-result.positive::before {
+            background: linear-gradient(90deg, var(--color-mint), var(--color-seafoam));
+        }
+
+        .prediction-result.negative::before {
+            background: linear-gradient(90deg, var(--color-rose), var(--color-pink));
+        }
+
+        .prediction-result.neutral::before {
+            background: linear-gradient(90deg, var(--color-sage), var(--color-beige));
+        }
+
+        .prediction-label {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .confidence-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .confidence-bar {
+            margin-top: 12px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .confidence-fill.positive {
+            background: linear-gradient(90deg, var(--color-mint), var(--color-teal));
+        }
+
+        .confidence-fill.negative {
+            background: linear-gradient(90deg, var(--color-rose), var(--color-pink));
+        }
+
+        .confidence-fill.neutral {
+            background: linear-gradient(90deg, var(--color-sage), var(--color-beige));
+        }
+
+        .batch-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-teal);
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .batch-link:hover {
+            background: rgba(91, 160, 130, 0.1);
+            color: var(--color-orange);
+            transform: translateX(5px);
+        }
+
+        .loading-state {
+            display: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.2rem;
+            }
+            
+            .prediction-card {
+                padding: 40px 30px;
+            }
+            
+            .form-control {
+                padding: 14px 16px;
+            }
+        }
+
+        /* Input focus animations */
+        .form-control:focus {
+            animation: inputFocus 0.3s ease;
+        }
+
+        @keyframes inputFocus {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-decoration"></div>
+    
+    <div class="main-container">
+        <div class="prediction-card">
+            <div class="title-section">
+                <div class="feature-badge">
+                    <i class="fas fa-brain"></i>
+                    Single Analysis
+                </div>
+                <h1 class="main-title">Review Analyzer</h1>
+                <p class="subtitle">Analyze the sentiment of your product review</p>
+            </div>
+
+            <form method="POST" id="predictionForm">
+                <div class="form-section">
+                    <label for="review" class="form-label">
+                        <i class="fas fa-comment-dots"></i> Enter your review:
+                    </label>
+                    <textarea name="review" id="review" class="form-control" rows="4" placeholder="E.g. This product is great!" required>{{ review }}</textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span class="normal-state">
+                        <i class="fas fa-search"></i> Predict Sentiment
+                    </span>
+                    <span class="loading-state">
+                        <span class="loading-spinner"></span>
+                        Analyzing...
+                    </span>
+                </button>
+            </form>
+
+            {% if prediction %}
+            <div class="prediction-result {{ prediction.lower() }}" id="predictionResult">
+                <div class="prediction-label">
+    <strong>Prediction:</strong> {{ prediction }}
+</div>
+
+
+                <div class="confidence-label">
+                    <strong>Confidence:</strong> {{ confidence }}
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill {{ prediction.lower() }}" style="width: {{ confidence.replace('%', '') }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="text-center">
+                <a href="{{ url_for('batch') }}" class="batch-link">
+                    Try Batch Prediction
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictionForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const reviewTextarea = document.getElementById('review');
+
+        // Form submission handling
+        form.addEventListener('submit', (e) => {
+            if (!reviewTextarea.value.trim()) {
+                e.preventDefault();
+                reviewTextarea.focus();
+                return;
+            }
+
+            // Show loading state
+            submitBtn.querySelector('.normal-state').style.display = 'none';
+            submitBtn.querySelector('.loading-state').style.display = 'inline-block';
+            submitBtn.disabled = true;
+        });
+
+        // Auto-resize textarea
+        reviewTextarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        // Character counter (optional)
+        reviewTextarea.addEventListener('input', function() {
+            const maxLength = 1000;
+            const currentLength = this.value.length;
+            
+            if (currentLength > maxLength) {
+                this.value = this.value.substring(0, maxLength);
+            }
+        });
+
+        // Reset form if needed
+        function resetForm() {
+            submitBtn.querySelector('.normal-state').style.display = 'inline-block';
+            submitBtn.querySelector('.loading-state').style.display = 'none';
+            submitBtn.disabled = false;
+        }
+
+        // Auto-focus on textarea when page loads
+        window.addEventListener('load', () => {
+            reviewTextarea.focus();
+        });
+    </script>
+</body>
+</html>
