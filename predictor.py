@@ -3,21 +3,21 @@ import torch
 from transformers import BertTokenizer, BertForSequenceClassification
 import re
 
-# 🔁 Load model and tokenizer
-MODEL_PATH = "saved_model"
+# ✅ Load model and tokenizer from Hugging Face Hub
+MODEL_NAME = "SreyaDvn/sentiment-model"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 try:
-    print("🚀 Loading tokenizer and model from predictor.py...")
-    tokenizer = BertTokenizer.from_pretrained(MODEL_PATH)
-    model = BertForSequenceClassification.from_pretrained(MODEL_PATH)
+    print("🚀 Loading tokenizer and model from Hugging Face Hub...")
+    tokenizer = BertTokenizer.from_pretrained(MODEL_NAME)
+    model = BertForSequenceClassification.from_pretrained(MODEL_NAME)
     model.to(device)
     model.eval()
-    print("✅ Model & tokenizer loaded successfully in predictor.py.")
+    print("✅ Model & tokenizer loaded successfully from Hugging Face.")
 except Exception as e:
-    print("❌ Error loading model/tokenizer in predictor.py:", e)
+    print("❌ Error loading model/tokenizer:", e)
 
-# 🔍 Clean text
+# 🔍 Text cleaner
 def clean_text(text):
     text = str(text).lower()
     text = re.sub(r"http\S+", "", text)
@@ -28,7 +28,7 @@ def clean_text(text):
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
-# 🔮 Predict function
+# 🔮 Sentiment prediction
 def predict_sentiment(text):
     try:
         cleaned = clean_text(text)

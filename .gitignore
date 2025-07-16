@@ -24,3 +24,7 @@ saved_model/
 
 # Ignore environment files if sensitive
 .env
+
+*.pyc
+*.pyo
+*.pyd
