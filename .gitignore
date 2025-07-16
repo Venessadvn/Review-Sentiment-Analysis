@@ -1,9 +1,26 @@
-venv/
+# Ignore Python cache and bytecode
 __pycache__/
-*.pyc
-*.pkl
-*.pt
-*.safetensors
-.DS_Store
-.env
+*.py[cod]
+*.so
+
+# Ignore virtual environment
+venv/
+
+# Ignore saved model files
 saved_model/
+*.safetensors
+*.pt
+*.bin
+*.ckpt
+
+# Ignore logs or runtime data
+*.log
+*.csv
+*.tmp
+*.DS_Store
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore environment files if sensitive
+.env
